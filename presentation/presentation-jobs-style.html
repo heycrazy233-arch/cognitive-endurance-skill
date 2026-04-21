@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>炼掉内耗 - Jobs Style Presentation</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #0d0d0f;
+      --text: #f5f5f7;
+      --muted: #86868b;
+      --line: rgba(255, 255, 255, 0.08);
+      --accent: #7dd3fc;
+      --warm: #f59e0b;
+      --green: #34d399;
+      --red: #fb7185;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at top, #161616 0%, var(--bg) 45%, #000 100%);
+      color: var(--text);
+      font-family: "SF Pro Display", "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(125, 211, 252, 0.12), transparent 28%),
+        radial-gradient(circle at 82% 80%, rgba(245, 158, 11, 0.08), transparent 24%);
+      pointer-events: none;
+    }
+
+    .deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 56px 72px 84px;
+      opacity: 0;
+      transform: translateX(32px) scale(0.985);
+      transition: opacity 520ms ease, transform 520ms ease;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .frame {
+      width: min(1280px, 100%);
+      height: min(720px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+      backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    .frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 32%, transparent 68%, rgba(255, 255, 255, 0.02));
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      padding: 56px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .title-xl {
+      font-size: clamp(54px, 8vw, 92px);
+      line-height: 0.98;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .title-lg {
+      font-size: clamp(38px, 5vw, 62px);
+      line-height: 1.04;
+      font-weight: 700;
+      letter-spacing: -0.035em;
+    }
+
+    .subtitle {
+      margin-top: 22px;
+      max-width: 760px;
+      font-size: 24px;
+      line-height: 1.45;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .hero-stat {
+      margin-top: 44px;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+    }
+
+    .hero-stat strong {
+      font-size: clamp(56px, 6vw, 84px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .hero-stat span {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 280px;
+      line-height: 1.4;
+    }
+
+    .center {
+      align-items: center;
+      text-align: center;
+    }
+
+    .center .subtitle {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .quote {
+      max-width: 980px;
+      font-size: clamp(34px, 4.4vw, 58px);
+      line-height: 1.18;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+
+    .quote small {
+      display: block;
+      margin-top: 26px;
+      font-size: 20px;
+      color: var(--muted);
+      font-weight: 400;
+      letter-spacing: normal;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 44px;
+      align-items: center;
+      height: 100%;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 28px 30px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .problem-item,
+    .mode-item,
+    .route-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .problem-item:last-child,
+    .mode-item:last-child,
+    .route-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .problem-item:first-child,
+    .mode-item:first-child,
+    .route-item:first-child {
+      padding-top: 0;
+    }
+
+    .num {
+      min-width: 42px;
+      font-size: 26px;
+      line-height: 1;
+      color: rgba(255, 255, 255, 0.28);
+      font-weight: 700;
+      letter-spacing: -0.05em;
+    }
+
+    .item-title {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .item-copy {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .big-number {
+      font-size: clamp(120px, 16vw, 220px);
+      line-height: 0.9;
+      font-weight: 700;
+      letter-spacing: -0.08em;
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .big-number-label {
+      margin-top: 8px;
+      font-size: 22px;
+      color: var(--muted);
+      line-height: 1.4;
+      max-width: 280px;
+    }
+
+    .mode-grid {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .mode-card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px 24px;
+      background: rgba(255, 255, 255, 0.02);
+      min-height: 280px;
+    }
+
+    .mode-card .badge {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #0b0b0d;
+      background: white;
+      margin-bottom: 18px;
+      font-weight: 700;
+    }
+
+    .mode-card h3 {
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+
+    .mode-card p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .mode-card ul {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+      color: #d6d6d7;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .route-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px 24px;
+    }
+
+    .route-card {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+
+    .route-card strong {
+      display: block;
+      font-size: 28px;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .route-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .chat {
+      display: grid;
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .bubble {
+      max-width: 78%;
+      border-radius: 22px;
+      padding: 18px 20px;
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .bubble.user {
+      justify-self: start;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      color: #f0f0f0;
+    }
+
+    .bubble.ai {
+      justify-self: end;
+      background: linear-gradient(135deg, rgba(125, 211, 252, 0.16), rgba(255, 255, 255, 0.08));
+      border: 1px solid rgba(125, 211, 252, 0.24);
+    }
+
+    .bubble label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.52);
+      font-weight: 700;
+    }
+
+    .finale {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 30px;
+      align-items: end;
+    }
+
+    .finale .title-xl {
+      max-width: 780px;
+    }
+
+    .finale-mark {
+      text-align: right;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1.4;
+    }
+
+    .accent {
+      color: white;
+      text-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
+    }
+
+    .accent-blue {
+      color: var(--accent);
+    }
+
+    .accent-warm {
+      color: var(--warm);
+    }
+
+    .accent-green {
+      color: var(--green);
+    }
+
+    .bottom-ui {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      z-index: 20;
+    }
+
+    .dots {
+      display: flex;
+      gap: 8px;
+      padding: 9px 14px;
+      background: rgba(0, 0, 0, 0.34);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      transition: transform 200ms ease, background 200ms ease;
+      cursor: pointer;
+    }
+
+    .dot.active {
+      background: white;
+      transform: scale(1.2);
+    }
+
+    .pager {
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.34);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      position: fixed;
+      right: 24px;
+      bottom: 22px;
+      color: rgba(255, 255, 255, 0.34);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      z-index: 20;
+    }
+
+    @media (max-width: 980px) {
+      .frame {
+        border-radius: 0;
+      }
+
+      .content {
+        padding: 40px 30px 84px;
+      }
+
+      .split,
+      .finale,
+      .mode-grid,
+      .route-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bubble {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <section class="slide active">
+      <div class="frame">
+        <div class="content center">
+          <div class="eyebrow">Cognitive Endurance Skill</div>
+          <h1 class="title-xl">炼掉内耗</h1>
+          <p class="subtitle">一个不是替你工作，而是把你重新送回工作流的 AI skill。</p>
+          <div class="hero-stat">
+            <strong>v2</strong>
+            <span>从“接住一个快宕机的人”升级成“帮知识工作者重新推进真实职场任务”。</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="split">
+            <div>
+              <div class="eyebrow">Version One</div>
+              <h2 class="title-lg">v1 很有洞察。<br>但它更像一个<span class="accent">认知安抚器</span>。</h2>
+              <p class="subtitle">它能识别“卡住、脑雾、透支”，也能温柔接住用户，但还没有真正接进工作的主流程。</p>
+            </div>
+            <div class="panel">
+              <div class="stack">
+                <div class="problem-item">
+                  <div class="num">01</div>
+                  <div>
+                    <div class="item-title">重识别，轻推进</div>
+                    <div class="item-copy">能判断用户状态，但不够擅长把人重新送回任务流。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num">02</div>
+                  <div>
+                    <div class="item-title">重情绪，轻场景</div>
+                    <div class="item-copy">更像在处理“内耗”，还没有覆盖真实职场里的任务阶段和协作关系。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num">03</div>
+                  <div>
+                    <div class="item-title">重原则，轻脚手架</div>
+                    <div class="item-copy">有模式，但缺少可直接拿来用的消息模板、交付物骨架和风险路由。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content center">
+          <div class="eyebrow">Why Upgrade</div>
+          <div class="quote">真实工作里，用户最需要的<br>不是“被理解”。<small>而是重新开始推进。</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">From V1 To V2</div>
+          <h2 class="title-lg">所以我们做了这次升级。</h2>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <div class="badge">Upgrade 1</div>
+              <h3>从 3 模式<br>到工作流路由</h3>
+              <p>不只判断“你怎么了”，还判断“工作卡在哪一段”。</p>
+              <ul>
+                <li>clarify</li>
+                <li>start / decide</li>
+                <li>communicate / shape / recover</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Upgrade 2</div>
+              <h3>从安抚<br>到推进</h3>
+              <p>输出不再停留在建议，而是给能立刻使用的工作产物。</p>
+              <ul>
+                <li>对上沟通模板</li>
+                <li>周报和汇报骨架</li>
+                <li>第一句、第一版、第一步</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Upgrade 3</div>
+              <h3>从个人状态<br>到职场现实</h3>
+              <p>新增风险判断，识别缺信息、缺决策、缺授权，而不是误判成拖延。</p>
+              <ul>
+                <li>risk routing</li>
+                <li>stakeholder friction</li>
+                <li>minimum shippable version</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="split">
+            <div>
+              <div class="eyebrow">The Key Upgrade</div>
+              <h2 class="title-lg">从“认知状态 skill”<br>升级成<span class="accent">“职场推进 skill”</span>。</h2>
+              <p class="subtitle">核心不再只是判断用户累了、卡了、脑雾了。核心是判断: 他究竟卡在任务生命周期的哪一段。</p>
+            </div>
+            <div class="panel">
+              <div class="stack">
+                <div class="problem-item">
+                  <div class="num accent-blue">A</div>
+                  <div>
+                    <div class="item-title">卡点在哪一段</div>
+                    <div class="item-copy">是任务还没提纯，还是已经知道要做什么却起不来。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num accent-blue">B</div>
+                  <div>
+                    <div class="item-title">最小推进动作是什么</div>
+                    <div class="item-copy">现在该做的，不是“想清楚一切”，而是找到最小可推进的一步。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num accent-blue">C</div>
+                  <div>
+                    <div class="item-title">应该进入哪种工作动作</div>
+                    <div class="item-copy">思考、沟通、决策、表达，还是先交一个低风险版本。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">Five Workplace Modes</div>
+          <h2 class="title-lg">五种模式。<br>对应五种真实推进动作。</h2>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <div class="badge">Clarify</div>
+              <h3>任务提纯</h3>
+              <p>先搞清楚，到底要交什么，而不是围着模糊感打转。</p>
+              <ul>
+                <li>锁定真实交付物</li>
+                <li>暴露未知项</li>
+                <li>识别隐含约束</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Start</div>
+              <h3>启动困难</h3>
+              <p>不给长计划，只给 3 到 10 分钟可完成的起步动作。</p>
+              <ul>
+                <li>打开文档</li>
+                <li>写第一行</li>
+                <li>制造可见进展</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Decide</div>
+              <h3>决策压缩</h3>
+              <p>当选项太多时，砍到 2 到 3 个，并明确每个分支的代价。</p>
+              <ul>
+                <li>只留少量方案</li>
+                <li>给出判断标准</li>
+                <li>逼近选择</li>
+              </ul>
+            </div>
+          </div>
+          <div class="mode-grid" style="margin-top: 18px; grid-template-columns: repeat(2, 1fr);">
+            <div class="mode-card">
+              <div class="badge">Communicate</div>
+              <h3>沟通推进</h3>
+              <p>很多时候任务卡住，不是不会做，而是不知道怎么跟老板或同事说。</p>
+              <ul>
+                <li>确认需求</li>
+                <li>同步风险</li>
+                <li>发出能推进局面的消息</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Recover</div>
+              <h3>认知复位</h3>
+              <p>当用户真的累了，先停下任务，把脑力从 0 拉回到能重新进入的状态。</p>
+              <ul>
+                <li>停止强推</li>
+                <li>短暂离屏</li>
+                <li>设置单一回归入口</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content center">
+          <div class="quote">职场里真正拖垮人的，<br>通常不是任务本身。<small>而是任务推进过程中，反复产生的认知摩擦。</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="split">
+            <div>
+              <div class="eyebrow">The Problem</div>
+              <h2 class="title-lg">大多数人<br><span class="accent">不是不会做。</span></h2>
+              <p class="subtitle">他们只是卡在了真实工作的中间态里。</p>
+            </div>
+            <div class="panel">
+              <div class="stack">
+                <div class="problem-item">
+                  <div class="num">01</div>
+                  <div>
+                    <div class="item-title">任务模糊</div>
+                    <div class="item-copy">知道要交东西，但不知道到底该交什么。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num">02</div>
+                  <div>
+                    <div class="item-title">启动困难</div>
+                    <div class="item-copy">明明懂，还是迟迟打不开文档、发不出消息。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num">03</div>
+                  <div>
+                    <div class="item-title">沟通卡顿</div>
+                    <div class="item-copy">真正卡住的，不是思考，而是“怎么跟老板说”。</div>
+                  </div>
+                </div>
+                <div class="problem-item">
+                  <div class="num">04</div>
+                  <div>
+                    <div class="item-title">认知透支</div>
+                    <div class="item-copy">脑子没电了，却还在强推任务。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="split">
+            <div>
+              <div class="eyebrow">The Shift</div>
+              <h2 class="title-lg">这不是一个<br>“回答问题”的 skill。</h2>
+              <p class="subtitle">它先判断人处于什么状态，再判断工作卡在哪个阶段。</p>
+            </div>
+            <div>
+              <div class="big-number">2</div>
+              <div class="big-number-label">双轴判断<br>认知状态 × 任务阶段</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">Core Model</div>
+          <h2 class="title-lg">先判断人。<br>再判断工作。</h2>
+          <div class="route-grid">
+            <div class="route-card">
+              <strong>认知状态</strong>
+              <span>`clear-but-messy` / `stuck` / `strained` / `depleted`</span>
+            </div>
+            <div class="route-card">
+              <strong>任务阶段</strong>
+              <span>`clarify` / `start` / `decide` / `communicate` / `shape` / `recover`</span>
+            </div>
+            <div class="route-card">
+              <strong>先做对判断</strong>
+              <span>别把缺信息、缺授权、缺对齐，误判成“用户不够努力”。</span>
+            </div>
+            <div class="route-card">
+              <strong>再给轻介入</strong>
+              <span>优先恢复推进，不追求一次性给出最完美答案。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">Six Routes</div>
+          <h2 class="title-lg">六条工作流路由。</h2>
+          <div class="route-grid">
+            <div class="route-card">
+              <strong>Clarify</strong>
+              <span>任务模糊时，提纯真实交付物、未知项和隐含约束。</span>
+            </div>
+            <div class="route-card">
+              <strong>Start</strong>
+              <span>知道该做什么，却就是起不来时，只给一个 3 到 10 分钟微动作。</span>
+            </div>
+            <div class="route-card">
+              <strong>Decide</strong>
+              <span>选项太多时，压缩到 2 到 3 个方案，并明确每个权衡。</span>
+            </div>
+            <div class="route-card">
+              <strong>Communicate</strong>
+              <span>卡在沟通时，直接生成能发出去的短消息、状态同步或风险说明。</span>
+            </div>
+            <div class="route-card">
+              <strong>Shape</strong>
+              <span>卡在空白页时，不给大道理，只给一个可填写骨架。</span>
+            </div>
+            <div class="route-card">
+              <strong>Recover</strong>
+              <span>认知透支时，停止推任务，先帮用户恢复，再安排重返入口。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">Support Levels</div>
+          <h2 class="title-lg">不是只会安抚。<br>也不是一上来就代做。</h2>
+          <div class="mode-grid">
+            <div class="mode-card">
+              <div class="badge">Guide</div>
+              <h3>轻引导</h3>
+              <p>帮用户判断、收缩、排序，找到下一步。</p>
+              <ul>
+                <li>识别卡点</li>
+                <li>砍掉多余选项</li>
+                <li>只保留一个动作</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Scaffold</div>
+              <h3>搭骨架</h3>
+              <p>当空白页压力太大时，给结构、模板、消息草稿。</p>
+              <ul>
+                <li>周报框架</li>
+                <li>组会提纲</li>
+                <li>对上沟通模板</li>
+              </ul>
+            </div>
+            <div class="mode-card">
+              <div class="badge">Co-Draft</div>
+              <h3>共起稿</h3>
+              <p>只帮用户写出最难的第一句、第一段、第一版。</p>
+              <ul>
+                <li>避免过度接管</li>
+                <li>用户仍然保有控制权</li>
+                <li>一旦启动就退回 Guide</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">Workplace Reality</div>
+          <h2 class="title-lg">很多“内耗”，<br>其实不是心理问题。</h2>
+          <div class="split">
+            <div class="panel">
+              <div class="stack">
+                <div class="mode-item">
+                  <div class="num accent-blue">A</div>
+                  <div>
+                    <div class="item-title">缺决策</div>
+                    <div class="item-copy">方向没人拍板，用户再想也不会更清楚。</div>
+                  </div>
+                </div>
+                <div class="mode-item">
+                  <div class="num accent-blue">B</div>
+                  <div>
+                    <div class="item-title">缺信息</div>
+                    <div class="item-copy">没有数据、没有材料、没有反馈，继续硬想只会更乱。</div>
+                  </div>
+                </div>
+                <div class="mode-item">
+                  <div class="num accent-blue">C</div>
+                  <div>
+                    <div class="item-title">缺授权</div>
+                    <div class="item-copy">事情不是他不能做，而是这件事根本不该由他自己定。</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <p class="subtitle" style="margin-top: 0;">所以这个 skill 新增了 <span class="accent-warm">risk routing</span>。</p>
+              <p class="subtitle">它会直接指出: 你不是拖延，你只是需要一个确认消息、一个状态同步，或者一次合理的 scope 收缩。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">Demo</div>
+          <h2 class="title-lg">一个数学博士生的 PDE 科研场景。</h2>
+          <div class="chat">
+            <div class="bubble user">
+              <label>PhD Student</label>
+              导师让我下周组会前拿出一版 PDE 数值解思路。我有论文，有一点代码，但现在完全推不动，也不知道先整理模型、先做格式，还是先准备汇报。
+            </div>
+            <div class="bubble ai">
+              <label>Cognitive Endurance</label>
+              你现在卡在两个层面: 任务还没提纯，组会又带来时间压力。先别同时想三件事。<br><br>
+              `实际交付物`：下周组会的一版可讲清的研究路线<br>
+              `先做一步`：把文档写出 3 行标题: 模型、候选格式、验证指标
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="frame">
+        <div class="content">
+          <div class="eyebrow">The Outcome</div>
+          <div class="finale">
+            <div>
+              <h2 class="title-xl">把脑力留给<br><span class="accent-green">真正重要的部分。</span></h2>
+              <p class="subtitle">这就是“炼掉内耗”要做的事。<br>不是替你完成工作，而是把你从认知摩擦里拉出来，让工作重新开始流动。</p>
+            </div>
+            <div class="finale-mark">
+              Cognitive Endurance v2<br>
+              Workplace Progress System
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="bottom-ui">
+    <div class="dots" id="dots"></div>
+    <div class="pager"><span id="current">01</span> / <span id="total">10</span></div>
+  </div>
+  <div class="hint">Arrow Keys / Space</div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const dotsRoot = document.getElementById("dots");
+    const currentEl = document.getElementById("current");
+    const totalEl = document.getElementById("total");
+    let index = 0;
+
+    totalEl.textContent = String(slides.length).padStart(2, "0");
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement("button");
+      dot.className = "dot";
+      dot.type = "button";
+      dot.setAttribute("aria-label", `Go to slide ${i + 1}`);
+      dot.addEventListener("click", () => goTo(i));
+      dotsRoot.appendChild(dot);
+    });
+
+    const dots = Array.from(document.querySelectorAll(".dot"));
+
+    function render() {
+      slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
+      dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
+      currentEl.textContent = String(index + 1).padStart(2, "0");
+    }
+
+    function goTo(next) {
+      index = (next + slides.length) % slides.length;
+      render();
+    }
+
+    function next() {
+      goTo(index + 1);
+    }
+
+    function prev() {
+      goTo(index - 1);
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === " " || event.key === "PageDown") {
+        event.preventDefault();
+        next();
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        prev();
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        goTo(0);
+      }
+      if (event.key === "End") {
+        event.preventDefault();
+        goTo(slides.length - 1);
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
